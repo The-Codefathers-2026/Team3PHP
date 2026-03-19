@@ -1,7 +1,8 @@
 <?php
 session_start();
 
-$op1 = ''; $op2 = ''; $ergebnis = '';
+$op1 = ''; $op2 = ''; $ergebnis = ''; 
+$operator = '+';
 
 if (!isset($_SESSION['memory'])) { $_SESSION['memory'] = ''; }
 if (!isset($_SESSION['last_result'])) { $_SESSION['last_result'] = ''; }
@@ -10,31 +11,41 @@ if (!isset($_SESSION['history'])) { $_SESSION['history'] = []; }
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $op1 = isset($_POST['op1']) ? trim($_POST['op1']) : '';
     $op2 = isset($_POST['op2']) ? trim($_POST['op2']) : '';
+    $operator = isset($_POST['operator']) ? $_POST['operator'] : '+';
     $ergebnis = $_SESSION['last_result'];
 
     if (isset($_POST['btnBerechnen'])) {
         if (is_numeric($op1) && is_numeric($op2)) {
-            $ergebnis = $op1 + $op2;
+            switch ($operator) {
+                case '+': $ergebnis = $op1 + $op2; break;
+                case '-': $ergebnis = $op1 - $op2; break;
+                case '*': $ergebnis = $op1 * $op2; break;
+                case '/': 
+                    $ergebnis = ($op2 != 0) ? ($op1 / $op2) : 'Div by 0'; 
+                    break;
+            }
             $_SESSION['last_result'] = $ergebnis;
-            $_SESSION['history'][] = $ergebnis; 
+            if (is_numeric($ergebnis)) {
+                $_SESSION['history'][] = $ergebnis;
+            }
         } else {
             $ergebnis = 'Fehler';
         }
     } elseif (isset($_POST['btnC'])) {
-        $op1 = ''; $op2 = ''; $ergebnis = ''; $_SESSION['last_result'] = '';
+        $op1 = ''; $op2 = ''; $ergebnis = ''; $operator = '+'; $_SESSION['last_result'] = '';
     } elseif (isset($_POST['btnMPlus'])) {
         if (is_numeric($_SESSION['last_result'])) $_SESSION['memory'] = $_SESSION['last_result'];
     } elseif (isset($_POST['btnMR'])) {
         if (is_numeric($_SESSION['memory'])) $op1 = $_SESSION['memory'];
     } elseif (isset($_POST['btnRC'])) {
-        $_SESSION['history'] = []; 
+        $_SESSION['history'] = [];
     }
 }
 ?>
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <title>Taschenrechner - Stufe 3</title>
+    <title>Taschenrechner - Stufe 4</title>
 </head>
 <body>
     <h1>Taschenrechner</h1>
@@ -46,7 +57,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </select><br>
 
         <label>Operand 1: <input type="text" name="op1" value="<?php echo htmlspecialchars($op1); ?>"></label>
-        <span> + </span>
+        
+        <select name="operator">
+            <option value="+" <?php if($operator=='+') echo 'selected'; ?>>+</option>
+            <option value="-" <?php if($operator=='-') echo 'selected'; ?>>-</option>
+            <option value="*" <?php if($operator=='*') echo 'selected'; ?>>*</option>
+            <option value="/" <?php if($operator=='/') echo 'selected'; ?>>/</option>
+        </select>
+
         <label>Operand 2: <input type="text" name="op2" value="<?php echo htmlspecialchars($op2); ?>"></label>
         <span> = </span>
         <input type="text" value="<?php echo htmlspecialchars($ergebnis); ?>" readonly>
