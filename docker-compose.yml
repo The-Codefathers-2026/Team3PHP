@@ -1,0 +1,49 @@
+services:
+  maria:
+    build:
+      context: .
+      dockerfile: DockerfileMariaDB # Verweist auf dein Dockerfile
+    image: mariadb
+    # security_opt:
+      # - seccomp:unconfined # da sonst der Dienst nicht läuft fix https://mariadb.com/kb/en/problem-starting-up-docker-for-the-first-time/
+    restart: always
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD} # Siehe .env Datei für das Passwort
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./SQL_Dumps:/var/lib/mysql-dumps # Mappe den lokalen SQL_Dumps Ordner in den Container
+      - ./mysqld:/run/mysqld # Erlaubt Connection via Socket File, falls es Verbindungsprobleme gibt
+
+  phpmyadmin:
+    depends_on:
+      - maria
+    image: phpmyadmin/phpmyadmin
+    restart: always
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: maria
+      MYSQL_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD} # Siehe .env Datei für das Passwort
+
+  webserver:
+    depends_on:
+    - maria
+    build:   
+      context: .
+      dockerfile: DockerfilePHP # Verweist auf dein Dockerfile
+    # image: php:8.0-apache
+    restart: always
+    ports:
+      - "80:80"
+      - "9003:9003" # Xdebug port
+    volumes:
+      - ./htdocs:/var/www/html
+      - ./php:/usr/local/etc/php # Mappe den php Ordner
+
+volumes:
+  db_data:
+
+
+

@@ -1,0 +1,15 @@
+# MySQL / XAMPP
+mysqld/
+*.sock
+*.pid
+
+# Logs
+*.log
+
+# Temp
+tmp/
+temp/
+
+# OS
+.DS_Store
+Thumbs.db

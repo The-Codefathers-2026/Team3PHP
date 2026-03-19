@@ -1,0 +1,20 @@
+# Verwende das offizielle PHP 8.0 Apache Image als Basis
+FROM php:8.3-apache
+
+# Installiere mysqli und PDO
+RUN docker-php-ext-install mysqli pdo_mysql
+
+RUN echo 'ServerName localhost' >> /etc/apache2/apache2.conf
+
+# Install Xdebug
+RUN pecl install xdebug \
+    && docker-php-ext-enable xdebug
+
+# Aktiviere Apache Rewrite Modul
+RUN a2enmod rewrite
+
+# Kopiere custom php.ini
+COPY ./php/php.ini /usr/local/etc/php/
+
+# Setze das Arbeitsverzeichnis
+WORKDIR /var/www/html
